@@ -1,0 +1,170 @@
+---
+title: "chapter6　統計モデリングの視点から確率分布の紹介　のまとめ"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 一様分布
+
+
+
+$$
+Uniform(y|a,b) =  \begin{cases}
+    1 / (b-a) & (a \leq x \leq b) \\
+    0  & (otherwise)
+  \end{cases}
+$$
+ 
+ 無情報事前分布として使われることが多い。
+ 
+
+
+```{r}
+library(ggplot2)
+set.seed(1234)
+data = runif(n = 1000, min = 0, max = 1)
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(
+    #bins = 20, # binsはX軸を何個の区画に分けるかを指定。X軸の定義域で区画内幅は変化する
+    binwidth = 0.02 # binwitdhは区画内幅を指定する。何個に分けるかはその後に決まる
+    )
+```
+
+## ベルヌーイ分布
+
+$$
+Bernoulli(y|θ)=\begin{cases}
+    θ & (when:y = 1) \\
+    1-θ  & (when:y = 0)
+  \end{cases}
+$$
+
+コイン一枚の裏表の確率を表す
+この場合のコインの裏表の出る確率は50%ではなくても良い。
+極端な歪なコインを考えれば、他の事例にも落とし込める。
+
+２値の扱いなので、ロジスティック関数との組み合わせで使うことが多い。
+
+```{r}
+data = sample(x = c(0,1), size = 1000, replace = TRUE, prob= c(0.9, 0.1))
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 3,
+  )
+```
+
+
+
+
+## 二項分布
+ベルヌーイ分布に従う事象をN回試行した時にy回表が出る確率を示す分布。
+N=1のときはベルヌーイ分布になる。
+
+二項分布は再生性を持つ。（数式の意味はわかるが理解は不十分）
+二項分布は階乗の計算があるので重い。試行回数Nが十分に大きい場合は正規分布に近似できる
+
+$$
+Binomial(y|N,θ)=\frac{N!}{y!(N-y)!}θ^y(1-θ)^{N-y}
+$$
+
+```{r}
+data = rbinom(n= 1000, size= 10, prob= 0.3) # nはシミュレーションの回数、sizeはシミュレーションの中での試行回数
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 10,
+  )
+```
+
+
+
+## ベータ分布
+
+$$B(\alpha,\beta)$$ 
+は積分を１にするための正規化定数
+定義域は[0:1]
+確率でなくても、2点間の内分点を算出する際の重み生成にも使える。
+
+データ例：
+品目がN個の製品のそれぞれの故障率の分布を考えたい場合
+個別に推定するとサンプル数が少なくて、推定が難しい場合がある。
+そこで、個別に推定するのではなく、それぞれの故障確率はある一つのベータ分布から生成されたと考える。
+多くの品目の故障確率が類似していれば山型になる。
+故障しにくい・故障しやすい品目がある場合はU字型になる。
+
+$$
+Beta(θ|\alpha,\beta)=\frac{1}{B(\alpha,\beta)}θ^{\alpha}(1-θ)^{\beta-1}
+$$
+
+
+
+```{r}
+## ベータ分布
+### 山型
+data = rbeta(n= 1000, shape1 = 3, shape2 = 9 ,ncp = 0) # 山型分布
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 100,
+  )
+### U字型
+data = rbeta(n= 1000, shape1 = 0.5, shape2 = 0.5 ,ncp = 0) # 山型分布
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 100,
+  )
+```
+
+## カテゴリカル分布
+$$
+
+$$
+
+```{r}
+
+```
+## 多項分布
+$$
+
+$$
+
+```{r}
+
+```
+## ディリクレ分布
+$$
+
+$$
+
+```{r}
+
+```
+## 指数分布
+$$
+
+$$
+
+```{r}
+
+```
+## ポワソン分布
+$$
+
+$$
+
+```{r}
+
+```
+## ガンマ分布
+$$
+
+$$
+
+```{r}
+
+```
+
+## 参考
+http://cse.naro.affrc.go.jp/takezawa/r-tips/r/60.html
