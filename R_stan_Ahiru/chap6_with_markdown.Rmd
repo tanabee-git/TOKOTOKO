@@ -24,6 +24,7 @@ $$
 
 ```{r}
 library(ggplot2)
+library(tidyr)
 set.seed(1234)
 data = runif(n = 1000, min = 0, max = 1)
 data_df <- data.frame(data = data)
@@ -72,19 +73,23 @@ Binomial(y|N,θ)=\frac{N!}{y!(N-y)!}θ^y(1-θ)^{N-y}
 $$
 
 ```{r}
-data = rbinom(n= 1000, size= 10, prob= 0.3) # nはシミュレーションの回数、sizeはシミュレーションの中での試行回数
+data = rbinom(n= 10000, size= 10, prob= 0.3) # nはシミュレーションの回数、sizeはシミュレーションの中での試行回数
 data_df <- data.frame(data = data)
 ggplot(data = data_df, aes(x = data))+
-  geom_histogram(bins = 10,
+  geom_histogram(bins = 10
+  )+
+  scale_x_continuous(
+    limits = c(0,10),
+    expand = c(0,0) # mult, と　add の引数
   )
+  
 ```
 
 
 
 ## ベータ分布
 
-$$B(\alpha,\beta)$$ 
-は積分を１にするための正規化定数
+$B(\alpha,\beta)$は積分を１にするための正規化定数
 定義域は[0:1]
 確率でなくても、2点間の内分点を算出する際の重み生成にも使える。
 
@@ -94,6 +99,8 @@ $$B(\alpha,\beta)$$
 そこで、個別に推定するのではなく、それぞれの故障確率はある一つのベータ分布から生成されたと考える。
 多くの品目の故障確率が類似していれば山型になる。
 故障しにくい・故障しやすい品目がある場合はU字型になる。
+
+$\alpha$,$\beta$もデータから推定する
 
 $$
 Beta(θ|\alpha,\beta)=\frac{1}{B(\alpha,\beta)}θ^{\alpha}(1-θ)^{\beta-1}
@@ -118,53 +125,354 @@ ggplot(data = data_df, aes(x = data))+
 ```
 
 ## カテゴリカル分布
-$$
+カテゴリーのインデックスを確率的に生成する分布と解釈。
+カテゴリー数がK、各カテゴリーの生起確率が$\overrightarrowθ$と考える。
+(例：kの面の出る確率が$θ_k$であるK面サイコロ)
 
+商品のインデックスをY[n]とする。nは顧客に相当。
+各々の顧客の商品を購入する確率が$\overrightarrow{θ[n]}$となる。
+説明変数として、年齢や性別、年収を入れた線形回帰モデルを作ることがある。
+詳しいところは学習中
+
+$$
+Categorical(y=k|\overrightarrowθ)= θ_k
 $$
 
 ```{r}
-
+data = sample.int(n=5, size=1000, replace=TRUE, prob=c(0.1, 0.2, 0.25, 0.35, 0.1)) #sample.intで乱数生成
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 5)+
+   scale_x_continuous(
+        limits = c(0,5),
+        expand = c(0,0) # mult, と　add の引数
+    )
 ```
+
 ## 多項分布
-$$
+例えば、６面のサイコロで考える。
+６面なので、$\overrightarrow{y}$は６次元ベクトル。
+そして、その要素である$(y_1,y_2,,,y_6)$が示す回数の組み合わせで出る同時確率を表す。
+$(y_1,y_2,,,y_6)$の合計はNになる（はず）
 
+カテゴリカル分布は、N＝１の時、でた目に相当するインデックスを返すが
+多項分布では、どれかが１であ、他は０のベクトルを返す。
 $$
-
+Multinomial(\overrightarrow{y}|N,\overrightarrow{θ})=\frac{N!}{\prod_{k=1}^{K}y_k!}\prod_{k=1}^{K}θ_k^{y_k}
+$$
+以下のサンプルでは乱数を生成している。
+特定の回数の組み合わせの同時確率
 ```{r}
+data = rmultinom(n= 10, size = 20, prob = c(0.1, 0.2, 0.3, 0.4)) # ４次元のベクトル
+data_df <- data.frame(data = data)
+data_df # シミュレーション回数１０回で、それぞれ２０回の試行回数
+### 同時確率の計算（例１：起きそうな組み合わせ）
+data = dmultinom(x= c(0,1,3,6), size = 10, prob = c(0.1, 0.2, 0.3, 0.4))
+data_df <- data.frame(data = data)
+data_df
 
+### 同時確率の計算（例２：滅多に起きない組み合わせ）
+data = dmultinom(x= c(3,4,1,2), size = 10, prob = c(0.1, 0.2, 0.3, 0.4))
+data_df <- data.frame(data = data)
+data_df
 ```
+
 ## ディリクレ分布
-$$
+多項分布では確率θが与えられていた場合の同時確率の分布を求めるが、
+ディリクレ分布では、パラメータ$\overrightarrow{\alpha}$の下での確率$\overrightarrowθ$を求める。
+
+ベータ分布の多変量版。θと同様に$\alpha$もデータから推定する。
 
 $$
-
+Dirichlet(\overrightarrowθ|\overrightarrow{\alpha})=\frac{1}{B(\overrightarrow{\alpha})}\prod_{k=1}^{K}θ_k^{θ_k-1}
+$$
+図はpackageのインストール不良でいまだかけず
 ```{r}
 
 ```
+
 ## 指数分布
+無記憶性を持つ唯一の連続型確率分布。
+
+無記憶性の式は以下の通り。オフセットとしてのs時間の有無に依らず、t時間後の確率が同じであるということ
+$$
+Pr(y > s + t | y > s) = Pr(y > t)
 $$
 
+expの中がyの一乗のマイナスのため、正規分布に比べると確率密度が小さくなるスピードはかなり遅い。裾が長い分布。
+
+データ例：
+あるイベントが起こるまでの時間（故障、死亡、流れ星）
+$$
+Exponential(y|\beta)=\beta exp(-\beta y)
 $$
 
 ```{r}
-
+data = rexp(n= 10000, rate = 3)
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 30,
+  )
 ```
+
 ## ポワソン分布
-$$
+再生性を持つ。
+すなわち、確率変数$y_1$と$y_2$が独立で、$y_1 \sim Poisson(\lambda_1)$かつ、$y_2 \sim Poisson(\lambda_2)$の時に、和で作られる新しい確率変数$y = y_1+ y_2$は$Poisson(\lambda_1 + \lambda_2)$に従う
 
+指数関数との関係
+パラメータ$\beta$（平均$1/\beta$）の指数分布に従う時間間隔で起こるイベントがあるとする。
+単位時間にそのイベントが何回起きるかカウントすると、そのカウント数は平均$beta$のポワソン分布に従う。
+再生性があるので、単位時間の５倍の期間中に起きるイベントの数は平均$5 \beta$のポワソン分布に従う。
+
+データ例：
+1日の間に観測される動物の個体数、一時間の間に届くメールの数
+これらは試行回数Nが多い一方で発生確率θが稀な現象であるという仮定の上に成り立つ
+
+$$
+Poisson(y|\lambda) = \frac{1}{y!}\lambda ^ y exp(- \lambda)
 $$
 
 ```{r}
-
+data = rpois(n= 10000, lambda = 10)
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 30)+
+  scale_x_continuous(
+    limits = c(0,30),
+    expand = c(0,0) # mult, と　add の引数
+    )
 ```
+
 ## ガンマ分布
-$$
+再生性を持つ。
 
+指数分布との関係：
+パラメータ$\alpha$と独立な$\beta$（平均$1/\beta$）の指数分布に従うイベントが起きる時間を$T_1,T_2,...,T_\alpha$を考える。
+これらの和をとった新しい確率変数$y = T_1+T_2+...+T_\alpha$は$Gamma(\alpha,\beta)$に従う。
+$\alpha$は和をとる時間の個数に相当する。
+
+yの平均は平均$1/\beta$で起きるイベントが$\alpha$回あるので、$\alpha/\beta$となる。
+
+ポワソン分布との関係：
+単位時間を１年として、ワイングラスが使い始めてから壊れるまでが$\beta = 0.5$(平均２年)の指数分布に従うとする。
+ここで、同じワイングラスが３つ入ったセットを送られてきて、一つずつ使うことを考える。
+その場合に、３つ全てが壊れるまでの時間は$Gamma(3,0.5)$に従う。
+したがって、3個全てが壊れる時間が５年を超える確率は$P[Gamma(3,0.5)>5]$になる。
+
+この場合
+指数分布$Exponential(0.5)$はワイングラス1個が壊れるまでの時間の確率を生成
+ポワソン分布$Poisson(0.5)$は１年に壊れるワイングラスの数の確率を生成
+
+データ例：
+待ち時間に使う。
+流れ星が5個流れるまでの時間、パソコンのメモリが壊れるまでの時間
+
+$$
+Gamma(y|\alpha,\beta)= \frac{\beta^\alpha}{\Gamma(\alpha)}y^{\alpha-1}exp(-\beta y)
 $$
 
 ```{r}
+data = rgamma(n= 10000, shape = 3, scale = 3)
+data_df <- data.frame(data = data)
+ggplot(data = data_df, aes(x = data))+
+  geom_histogram(bins = 30,
+  )
+```
+
+
+
+## 正規分布
+再生性を持つ。
+身長分布が平均100cm、標準偏差が12cmの正規分布に従う子供たちと、長さが平均30cm、標準偏差５cmの正規分布に従うタケノコの集まりがあって、
+確率的に子供の頭にタケノコを載せると、その分布は
+平均130(=100+30)cm,標準偏差13(=$\sqrt{12^2+5^2}$)の正規分布に従う。
+
+正規分布の特徴は分布の範囲が$(-\infty,+\infty)$であり、対称的であること。
+また、$\mu$から$\pm2\sigma$ぐらいから離れると急速に確率密度関数の値が小さくなる。
+そのため、外れ値に推定結果が引きずられやすい。
+これを避けるには、コーシー分布やStudentのt分布を使う。
+$$
+Normal(y|\mu,\sigma)=\frac{1}{\sqrt{2\pi}\sigma}exp(-\frac{1}{2}(\frac{y-\mu}{\sigma})^2)
+$$
+
+```{r}
+data1 = rnorm(n= 10000, mean = 3, sd = 1)
+data2 = rnorm(n= 10000, mean = 8, sd = 3)
+data_df <- data.frame(data1 = data1, data2 = data2)
+df <- tidyr::gather(data_df)  ## tidyrのgather関数でdata1,data2を２列のデータに変形
+ggplot(data = df, aes(x = value, fill = key))+
+  geom_histogram(bins = 30, position = "identity", alpha = 0.8
+  )
+```
+
+## 対数正規分布
+確率変数yが$LogNormal(\mu,\sigma)$に従う時、対数をとって作られる新しい確率変数x=log yが$Normal(\mu,\sigma)$に従う。
+
+裾が長い分布である
+
+$$
+LogNormal(y|\mu,\sigma)=\frac{1}{\sqrt{2\pi}\sigma}\frac{1}{y}exp(-\frac{1}{2}(\frac{log\ y-\mu}{\sigma})^2)
+$$
+
+```{r}
+data1 = rlnorm(n= 10000, mean = 0, sd = 1)
+data2 = rlnorm(n= 10000, mean = 3, sd = 0.4)
+data3 = rlnorm(n= 10000, mean = 4, sd = 0.8)
+data_df <- data.frame(data1 = data1, data2 = data2,data3 = data3)
+df <- tidyr::gather(data_df)  ## tidyrのgather関数でdata1,data2を２列のデータに変形
+ggplot(data = df, aes(x = value, fill = key))+
+  geom_histogram(bins = 30, position = "identity", alpha = 0.4
+  )+
+  scale_x_continuous(
+    limits = c(-10,200),
+    expand = c(0,0) # mult, と　add の引数
+  )
 
 ```
+
+## 多変量正規分布
+$\overrightarrow{y}$の各要素$y_1,y_2,...,y_k$が従う同時分布。
+$\overrightarrow{\mu}$は平均ベクトル
+$\Sigma$は分散共分散行列
+$\Sigma$の対角成分以外がゼロならば、互いに独立なK個の１次元正規分布になる。
+
+非対角成分は$\overrightarrow{y}$の要素間の相関に関係している。
+例）２次元の場合の平均ベクトルと分散共分散行列
+$$
+\overrightarrow{\mu} = \left(
+    \begin{array}{c} 
+     \mu_a \\
+     \mu_b \\
+    \end{array}
+  \right)
+$$
+$$
+A = \left(
+    \begin{array}{cc}
+      \sigma^2_a & \sigma_a \sigma_b\rho  \\
+      \sigma_a \sigma_b\rho & \sigma^2_b  \\
+    \end{array}
+  \right)
+$$
+
+再生性を持つ。
+多変量正規分布に従う確率変数は線形結合しても多変量正規分布に従う。
+周辺化しても多変量正規分布（２次元から１次元への周辺化の場合、正規分布Normalに従う）
+条件付き分布も多変量正規分布になる
+
+データ例）
+ある小学校３年生〜６年生の集団の各児童の50m走のタイム（$Y_1$）と走り幅跳びで飛んだ距離（$Y_2$）を並べたベクトル$\overrightarrow{Y}=(Y_1,Y_2)^T$の分布
+
+$$
+MultiNormal(\overrightarrow{y}|\overrightarrow{\mu},\Sigma)=\frac{1}{(2\pi)^{K/2}}\frac{1}{\sqrt{|\Sigma|}}exp(-\frac{1}{2}(\overrightarrow{y}-\overrightarrow{\mu})^T\Sigma^{-1}(\overrightarrow{y}-\overrightarrow{\mu})))
+$$
+
+```{r}
+## 参考URL ：https://gist.github.com/richarddmorey/27e74bcbf28190d150d266ae141f5117
+mu <- c(10, 20) ## X、Y軸の平均
+cov <- matrix(c(2.0, 0.5, 0.5, 1.0), ncol = 2) ## 分散共分散行列
+data <- mvtnorm::rmvnorm(n = 100, mean = mu, sigma = cov) ## mvtvnormを指定しないとエラーになる
+df <- data
+colnames(df) <- c('X1', 'X2')
+ggplot(data = as.data.frame(df), aes(x = X1, y= X2))+
+  geom_point(position = "identity", alpha = 0.4
+  )
+```
+
+
+
+## コーシー分布
+$\sigma$はスケール（大きさのオーダー）を決めるパラメータで以下が成り立つ
+$$
+\int_{\mu-\sigma}^{\mu+\sigma}Cauchy(y|\mu,\sigma)dy = 0.5
+$$
+再生性を持つ。
+裾が長い分布であるため、外れ値があるデータへのモデルに有用。
+
+コーシー分布は平均、分散を持たない。不定
+
+$$
+Cauchy(y|\mu,\sigma)=\frac{1}{\pi\sigma}\frac{1}{1+((y^\mu)/\sigma)^2}
+$$
+
+```{r}
+data1 = rcauchy(n= 10000, location = 0, scale = 10)
+data2 = rcauchy(n= 10000, location = 0, scale = 30)
+data_df <- data.frame(data1 = data1, data2 = data2)
+df <- tidyr::gather(data_df)  ## tidyrのgather関数でdata1,data2を２列のデータに変形
+ggplot(data = df, aes(x = value, fill = key))+
+  geom_histogram(bins = 100, position = "identity", alpha = 0.4
+  )+
+  scale_x_continuous(
+    limits = c(-100,100),
+    expand = c(0,0) # mult, と　add の引数
+  )
+```
+
+## Studentのt分布
+自由度１のt分布はコーシー分布に一致。
+自由度$\infty$のt分布は正規分布に一致。
+$\upsilon$：自由度
+
+
+コーシー分布よりも裾の長い分布を使いたい場合は自由度を２〜８程度のt分布が良い。
+→裾の長さを自由度で制御できる
+自由度が大きいほど、裾は短くなる。
+
+$Student\_t(\upsilon,0,\sigma)$の$y\geq0$を半t分布と呼び、$Student\_t^+(\upsilon,0,\sigma)$と書く。
+
+$$
+Student\_t(y|\upsilon,\mu,\sigma)=\frac{\Gamma((\upsilon+1)/2)}{\Gamma(\upsilon/2)\sqrt{\pi\upsilon}\sigma}(1+\frac{1}{\upsilon}(\frac{y-\mu}{\sigma})^2)^{-(\upsilon+1)/2}
+$$
+
+```{r}
+data1 = rt(n= 1000, df = 20, ncp = 0)　## 自由度大きいほど、裾は短い
+data2 = rt(n= 1000, df = 1, ncp = 0) ## 自由度は１以下の小数も入力できるが、定義上どうなんだろう。
+data_df <- data.frame(data1 = data1, data2 = data2)
+df <- tidyr::gather(data_df)  ## tidyrのgather関数でdata1,data2を２列のデータに変形
+ggplot(data = df, aes(x = value, fill = key))+
+  geom_histogram(bins = 100, position = "identity", alpha = 0.4
+  )+
+  scale_x_continuous(
+    limits = c(-40,40),
+    expand = c(0,0) # mult, と　add の引数
+  )
+```
+
+
+
+## ２重指数分布（ラプラス分布）
+指数分布を二つ貼り合わせたような分布。
+正規分布に比べ、裾の長い分布。
+
+確率密度関数は$\mu$を中心として鋭いピークを持つので、回帰変数の事前分布にこの分布を使うと変数選択が可能
+
+$$
+DoubleExponential(y|\mu,\sigma)=\frac{1}{2\sigma}exp(-\frac{|y-\mu|}{\sigma})
+$$
+
+```{r}
+rlaplace <- function(n) {  ## 用意された関数はないので定義する
+  u <- log(runif(n))
+  v <- ifelse(runif(n)>1/2, 1, -1)
+  return(u*v)
+}
+data1 <- rlaplace(1000)
+data2 <- rlaplace(1000)
+data_df <- data.frame(data1 = data1, data2 = data2)
+df <- tidyr::gather(data_df)  ## tidyrのgather関数でdata1,data2を２列のデータに変形
+ggplot(data = df, aes(x = value, fill = key))+
+  geom_histogram(bins = 100, position = "identity", alpha = 0.4
+  )+
+  scale_x_continuous(
+    limits = c(-10,10),
+    expand = c(0,0) # mult, と　add の引数
+  )
+```
+
+
+
+
 
 ## 参考
 http://cse.naro.affrc.go.jp/takezawa/r-tips/r/60.html
