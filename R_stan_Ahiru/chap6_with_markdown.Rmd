@@ -20,8 +20,6 @@ $$
  
  無情報事前分布として使われることが多い。
  
-
-
 ```{r}
 library(ggplot2)
 library(tidyr)
