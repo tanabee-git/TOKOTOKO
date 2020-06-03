@@ -1,0 +1,82 @@
+---
+title: "Latent Dirichlet Allocation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+# 2章
+## 2.1 概要
+Latent Dirichlet Allocation (LDA)は潜在的ディリクレ配置と訳される（かな？）
+単語（WORD）の集合として、Bag of Word(BoW)を考える。
+単語の出現頻度のペア集合をモデル化。
+共起しやすい単語の生成要因を
+観測できない確率変数として潜在トピックとする。
+
+### LDAの仮定
+文書には複数の潜在トピックがある→離散分布モデル
+
+他にも、潜在トピックモデルとしては
+購入履歴をBag of Item としてモデル化して、表層に現れないアイテムも抽出ができる。
+音声や画像・情報検索、ソーシャルネットワーク解析などのデータもBag of XXX表現で変換できる
+
+### 階層ベイズモデル
+$\overrightarrow{\pi}$を単体（simplex）とする。
+単体は総和が１になる空間である（確率変数空間に適する）
+
+そして、この単体の中での$\overrightarrow{\pi}$の分布を決める確率モデルが
+Dirichlet分布である。
+$$
+p(\overrightarrow{\pi}|\overrightarrow{\alpha})=Dir(\overrightarrow{\pi}|\overrightarrow{\alpha}) = \frac{\Gamma(\Sigma\alpha_k)}{\Pi~\Gamma(\alpha_k)}\Pi\pi^{\alpha_k -1}_k
+$$
+ガンマ関数$\Gamma(n)$の性質：
+$$
+\Gamma(1) = 1\\
+\Gamma(n) = (n-1)\Gamma(n-1)=(n-1)!\\
+\Gamma(\alpha + n) = (\alpha + n-1)\Gamma(\alpha +n-1)\\
+\alphaは非負実数、n\geq2の整数
+$$
+期待値、分散は
+$$
+E[\pi_k] = \frac{\alpha_k}{\alpha_0}\\
+V[\pi_k] = \frac{\alpha_k(\alpha_0-\alpha_k)}{\alpha_0^2(1+\alpha_0)}\\
+\alpha_0 = \Sigma^K_{k=1}\alpha_k
+$$
+
+
+### 共役事前分布
+Dirichlet分布は
+多項分布の共役事前分布
+
+$p(x)$を$p(y|x)$の共役事前分布とする。
+事後分布$p(x|y)\propto p(y|x)p(x)$の分布が$p(x)$と同分布になる時、
+$p(x)$は$p(y|x)$の共役事前分布という
+
+例）
+$$
+p(x_i|\overrightarrow{\pi})=\Pi_{k=1}^K\pi_k^{\delta(x_i=k)}\\
+(ex.~~ x_2の確率はp(x_2|\overrightarrow{\pi})=\pi_2)\\
+\overrightarrow{\pi}というベクトルを作る同時確率は前述のDirichlet分布の式を用いて\\
+p(\overrightarrow{\pi}|\overrightarrow{\alpha})\propto\Pi_{k=1}^K\pi_k^{\alpha_k-1}\\
+途中導出は、本テキストを参照いただき、結果は\\
+p(\overrightarrow{\pi}|\overrightarrow{x},\overrightarrow{\alpha})=\Pi_{k=1}^K\pi_k^{n_k+\alpha_k-1}
+$$
+
+となる。
+これは、$n_k+\alpha_k$をパラメータとするDirichlet分布である（→共役事前分布になっている）
+こうなるための前提は、
+事後分布の計算式で観測値の期待値$p(x|\overrightarrow{\pi})$が$\overrightarrow{\pi}$に独立に結びつき、事前分布がDirichlet分布だからである。ある意味シンプルなモデル。
+
+
+
+
+
+
+
+
+
+
+
