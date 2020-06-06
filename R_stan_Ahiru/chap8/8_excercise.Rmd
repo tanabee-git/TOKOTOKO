@@ -1,0 +1,12 @@
+---
+title: "cahp8_excercise"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. model8_2.stanの結果から、会社ごとの年収のベイズ予測区間を描け
+
+
