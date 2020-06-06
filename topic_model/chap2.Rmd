@@ -7,7 +7,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 # 2章
 ## 2.1 概要
 Latent Dirichlet Allocation (LDA)は潜在的ディリクレ配置と訳される（かな？）
@@ -302,6 +301,7 @@ $$
 ### 潜在情報検索としての用途
 時系列的に潜在変数から推定されるトピックの変化を追跡。
 また、各単語と潜在変数を入れ替えると文書の圧縮ができるらしい（よくわからん）
+
 
 
 
