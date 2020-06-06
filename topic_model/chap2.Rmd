@@ -70,6 +70,8 @@ $$
 こうなるための前提は、
 事後分布の計算式で観測値の期待値$p(x|\overrightarrow{\pi})$が$\overrightarrow{\pi}$に独立に結びつき、事前分布がDirichlet分布だからである。ある意味シンプルなモデル。
 
+
+
 また、確率は総和が１であるので、
 $$
 \int~p(\overrightarrow{\pi}|\overrightarrow{x},\overrightarrow{\alpha})d\pi=1
