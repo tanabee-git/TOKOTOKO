@@ -1,5 +1,5 @@
 ---
-title: "Latent Dirichlet Allocation"
+title: "トピックモデルによる統計的潜在意味解析"
 output: html_document
 ---
 
@@ -7,7 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+
 # 2章
 ## 2.1 概要
 Latent Dirichlet Allocation (LDA)は潜在的ディリクレ配置と訳される（かな？）
