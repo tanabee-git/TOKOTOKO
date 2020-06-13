@@ -1,1 +1,3 @@
-topic_model/*.html
+#/topic_model/*.html
+#/other/*.html
+*.html
